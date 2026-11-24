@@ -15,6 +15,12 @@ public class AuthService {
     /** Registers a new CUSTOMER account. */
     public User register(String fullName, String email, String password, String confirmPassword)
             throws InvalidInputException, DuplicateUserException, DatabaseException {
+        return register(fullName, email, password, confirmPassword, User.ROLE_CUSTOMER);
+    }
+
+    /** Registers a new account with the selected supported role. */
+    public User register(String fullName, String email, String password, String confirmPassword, String role)
+            throws InvalidInputException, DuplicateUserException, DatabaseException {
 
         String name = Validator.requireText(fullName, "Full name");
         if (name.length() < 2) {
@@ -32,7 +38,12 @@ public class AuthService {
             throw new DuplicateUserException("An account with this email already exists. Please login.");
         }
 
-        User user = new User(name, cleanEmail, pass, User.ROLE_CUSTOMER);
+        String cleanRole = Validator.requireText(role, "Account type").toUpperCase();
+        if (!User.ROLE_ADMIN.equals(cleanRole) && !User.ROLE_CUSTOMER.equals(cleanRole)) {
+            throw new InvalidInputException("Please select Admin or Customer.");
+        }
+
+        User user = new User(name, cleanEmail, pass, cleanRole);
         user.setUserId(userDAO.insert(user));
         return user;
     }

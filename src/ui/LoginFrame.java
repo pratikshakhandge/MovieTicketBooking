@@ -4,17 +4,6 @@ import exception.DatabaseException;
 import exception.DuplicateUserException;
 import exception.InvalidInputException;
 import exception.InvalidLoginException;
-import model.User;
-import service.AuthService;
-
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JTextField;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -22,6 +11,17 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import model.User;
+import service.AuthService;
 
 /** First screen: Login and Registration (two cards inside one window). */
 public class LoginFrame extends JFrame {
@@ -39,6 +39,7 @@ public class LoginFrame extends JFrame {
     private final JTextField regEmail = Theme.inputField(20);
     private final JPasswordField regPassword = Theme.passwordField(20);
     private final JPasswordField regConfirm = Theme.passwordField(20);
+    private final JComboBox<String> regRole = new JComboBox<>(new String[]{"Customer", "Admin"});
     private final JButton loginButton = Theme.button("Login", Theme.ACCENT);
     private final JButton registerButton = Theme.button("Register", Theme.SUCCESS);
 
@@ -90,16 +91,16 @@ public class LoginFrame extends JFrame {
         panel.setBackground(Theme.BACKGROUND);
 
         int row = 0;
-        addFull(panel, Theme.title("Welcome back"), row++, 0, 4);
+        addFull(panel, Theme.title("Welcome"), row++, 0, 4);
         addFull(panel, Theme.label("Login to continue", Theme.FONT_NORMAL, Theme.TEXT_MUTED), row++, 0, 18);
         addRow(panel, "Email", loginEmail, row++);
         addRow(panel, "Password", loginPassword, row++);
 
         addFull(panel, loginButton, row++, 12, 6);
-        JButton toRegister = Theme.button("New customer? Create an account", Theme.SIDEBAR);
+        JButton toRegister = Theme.button("Create an account", Theme.SIDEBAR);
         addFull(panel, toRegister, row++, 4, 6);
-        addFull(panel, Theme.label("Demo admin: admin@movie.com / admin123", Theme.FONT_NORMAL, Theme.TEXT_MUTED),
-                row, 10, 0);
+        //addFull(panel, Theme.label("Demo admin: admin@movie.com / admin123", Theme.FONT_NORMAL, Theme.TEXT_MUTED),
+                //row, 10, 0);
 
         loginButton.addActionListener(e -> handleLogin());
         toRegister.addActionListener(e -> showCard(CARD_REGISTER));
@@ -114,9 +115,10 @@ public class LoginFrame extends JFrame {
 
         int row = 0;
         addFull(panel, Theme.title("Create account"), row++, 0, 4);
-        addFull(panel, Theme.label("Customer registration", Theme.FONT_NORMAL, Theme.TEXT_MUTED), row++, 0, 14);
+        addFull(panel, Theme.label("Choose an account type", Theme.FONT_NORMAL, Theme.TEXT_MUTED), row++, 0, 14);
         addRow(panel, "Full name", regName, row++);
         addRow(panel, "Email", regEmail, row++);
+        addRow(panel, "Account type", regRole, row++);
         addRow(panel, "Password", regPassword, row++);
         addRow(panel, "Confirm password", regConfirm, row++);
 
@@ -178,12 +180,14 @@ public class LoginFrame extends JFrame {
     private void handleRegister() {
         try {
             User user = authService.register(regName.getText(), regEmail.getText(),
-                    new String(regPassword.getPassword()), new String(regConfirm.getPassword()));
+                    new String(regPassword.getPassword()), new String(regConfirm.getPassword()),
+                    "Admin".equals(regRole.getSelectedItem()) ? User.ROLE_ADMIN : User.ROLE_CUSTOMER);
             Theme.showInfo(this, "Registration successful! You can login now.");
             loginEmail.setText(user.getEmail());
             loginPassword.setText("");
             regName.setText("");
             regEmail.setText("");
+            regRole.setSelectedItem("Customer");
             regPassword.setText("");
             regConfirm.setText("");
             showCard(CARD_LOGIN);
